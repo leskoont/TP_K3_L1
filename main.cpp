@@ -1,5 +1,5 @@
 #include <iostream>
-#include "custom_classes.h" // Подключите заголовочный файл с классом Keeper
+#include "custom_classes.h"
 
 int main() {
     Keeper keeper;

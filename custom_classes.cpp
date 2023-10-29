@@ -1,16 +1,15 @@
 #include "custom_classes.h"
 
-// Реализация методов класса Base
 Base::Base() {
-    std::cout << "Base constructor called." << std::endl;
+    OutputDebugString(L"Base constructor called\n");
 }
 
 Base::Base(const Base& other) {
-    std::cout << "Base copy constructor called." << std::endl;
+    OutputDebugString(L"Base copy constructor called\n");
 }
 
 Base::~Base() {
-    std::cout << "Base destructor called." << std::endl;
+    OutputDebugString(L"Base destructor called\n");
 }
 
 std::ostream& operator<<(std::ostream& os, const Base& obj) {
@@ -18,13 +17,12 @@ std::ostream& operator<<(std::ostream& os, const Base& obj) {
     return os;
 }
 
-// Реализация методов класса Furniture
 Furniture::Furniture() {
-    std::cout << "Furniture constructor called." << std::endl;
+    OutputDebugString(L"Furniture constructor called\n");
 }
 
 Furniture::Furniture(const Furniture& other) {
-    std::cout << "Furniture copy constructor called." << std::endl;
+    OutputDebugString(L"Furniture copy constructor called\n");
     type = other.type;
     height = other.height;
     width = other.width;
@@ -35,7 +33,11 @@ Furniture::Furniture(const Furniture& other) {
 }
 
 Furniture::~Furniture() {
-    std::cout << "Furniture destructor called." << std::endl;
+    OutputDebugString(L"Furniture destructor called\n");
+}
+
+Furniture* Furniture::Clone() const {
+    return new Furniture(*this);
 }
 
 void Furniture::SetAttributes() {
@@ -47,7 +49,7 @@ void Furniture::SetAttributes() {
     std::cin >> color;
     std::cout << "Enter material: ";
     std::cin >> material;
-    std::cout << "Enter cost: ";
+    std::cout << "Enter cost ($): ";
     std::cin >> cost;
 }
 
@@ -60,13 +62,22 @@ void Furniture::GetAttributes() const {
     std::cout << "Cost: " << cost << std::endl;
 }
 
-// Реализация методов класса Employee
+std::ostream& operator<<(std::ostream& os, const Furniture& furniture) {
+    os.write(reinterpret_cast<const char*>(&furniture), sizeof(Furniture));
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, Furniture& furniture) {
+    is.read(reinterpret_cast<char*>(&furniture), sizeof(Furniture));
+    return is;
+}
+
 Employee::Employee() {
-    std::cout << "Employee constructor called." << std::endl;
+    OutputDebugString(L"Employee constructor called\n");
 }
 
 Employee::Employee(const Employee& other) {
-    std::cout << "Employee copy constructor called." << std::endl;
+    OutputDebugString(L"Employee copy constructor called\n");
     name = other.name;
     position = other.position;
     salary = other.salary;
@@ -75,7 +86,11 @@ Employee::Employee(const Employee& other) {
 }
 
 Employee::~Employee() {
-    std::cout << "Employee destructor called." << std::endl;
+    OutputDebugString(L"Employee destructor called\n");
+}
+
+Employee* Employee::Clone() const {
+    return new Employee(*this);
 }
 
 void Employee::SetAttributes() {
@@ -102,20 +117,33 @@ void Employee::GetAttributes() const {
     std::cout << "Phone Number: " << phoneNumber << std::endl;
 }
 
-// Реализация методов класса Car
+std::ostream& operator<<(std::ostream& os, const Employee& employee) {
+    os.write(reinterpret_cast<const char*>(&employee), sizeof(Employee));
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, Employee& employee) {
+    is.read(reinterpret_cast<char*>(&employee), sizeof(Employee));
+    return is;
+}
+
 Car::Car() {
-    std::cout << "Car constructor called." << std::endl;
+    OutputDebugString(L"Car constructor called\n");
 }
 
 Car::Car(const Car& other) {
-    std::cout << "Car copy constructor called." << std::endl;
+    OutputDebugString(L"Car copy constructor called\n");
     make = other.make;
     model = other.model;
     licensePlate = other.licensePlate;
 }
 
 Car::~Car() {
-    std::cout << "Car destructor called." << std::endl;
+    OutputDebugString(L"Car destructor called\n");
+}
+
+Car* Car::Clone() const {
+    return new Car(*this);
 }
 
 void Car::SetAttributes() {
@@ -133,6 +161,16 @@ void Car::GetAttributes() const {
     std::cout << "Make: " << make << std::endl;
     std::cout << "Model: " << model << std::endl;
     std::cout << "License Plate: " << licensePlate << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& os, const Car& car) {
+    os.write(reinterpret_cast<const char*>(&car), sizeof(Car));
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, Car& car) {
+    is.read(reinterpret_cast<char*>(&car), sizeof(Car));
+    return is;
 }
 
 // Реализация методов класса Keeper
@@ -161,86 +199,112 @@ void Keeper::RemoveObject(int index) {
     }
 }
 
+void Keeper::InsertObject(const Base* obj) {
+    if (objectCount < MAX_OBJECTS) {
+        objects[objectCount++] = obj->Clone(); // Создаем копию объекта и добавляем в массив.
+    }
+}
+
 void Keeper::SaveToFile(const std::string& filename) {
     std::ofstream file(filename, std::ios::binary);
-    if (file.is_open()) {
-        for (int i = 0; i < objectCount; i++) {
-            Base* obj = objects[i];
-            int objectType = TypeUnknown;
-            if (dynamic_cast<Furniture*>(obj)) {
-                objectType = TypeFurniture;
-            }
-            else if (dynamic_cast<Employee*>(obj)) {
-                objectType = TypeEmployee;
-            }
-            else if (dynamic_cast<Car*>(obj)) {
-                objectType = TypeCar;
-            }
-            file.write(reinterpret_cast<const char*>(&objectType), sizeof(int));
-            if (objectType != TypeUnknown) {
-                if (objectType == TypeFurniture) {
-                    Furniture* furniture = dynamic_cast<Furniture*>(obj);
-                    file << *furniture;
-                }
-                else if (objectType == TypeEmployee) {
-                    Employee* employee = dynamic_cast<Employee*>(obj);
-                    file << *employee;
-                }
-                else if (objectType == TypeCar) {
-                    Car* car = dynamic_cast<Car*>(obj);
-                    file << *car;
-                }
-            }
-        }
-        file.close();
-    }
-    else {
+    if (!file.is_open()) {
         throw std::runtime_error("Error: Unable to open the file for saving.");
     }
+
+    // Записываем количество объектов
+    file.write(reinterpret_cast<const char*>(&objectCount), sizeof(int));
+
+    for (int i = 0; i < objectCount; i++) {
+        Base* obj = objects[i];
+        int objectType = TypeUnknown;
+
+        // Определяем тип объекта
+        if (dynamic_cast<Furniture*>(obj)) {
+            objectType = TypeFurniture;
+        }
+        else if (dynamic_cast<Employee*>(obj)) {
+            objectType = TypeEmployee;
+        }
+        else if (dynamic_cast<Car*>(obj)) {
+            objectType = TypeCar;
+        }
+
+        // Записываем тип объекта
+        file.write(reinterpret_cast<const char*>(&objectType), sizeof(int));
+
+        // Записываем данные объекта (если не TypeUnknown)
+        if (objectType != TypeUnknown) {
+            if (objectType == TypeFurniture) {
+                Furniture* furniture = dynamic_cast<Furniture*>(obj);
+                file.write(reinterpret_cast<const char*>(furniture), sizeof(Furniture));
+            }
+            else if (objectType == TypeEmployee) {
+                Employee* employee = dynamic_cast<Employee*>(obj);
+                file.write(reinterpret_cast<const char*>(employee), sizeof(Employee));
+            }
+            else if (objectType == TypeCar) {
+                Car* car = dynamic_cast<Car*>(obj);
+                file.write(reinterpret_cast<const char*>(car), sizeof(Car));
+            }
+        }
+    }
+
+    file.close();
 }
 
 void Keeper::LoadFromFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
-    if (file.is_open()) {
-        Clear();
-        while (true) {
-            int type;
-            if (!file.read(reinterpret_cast<char*>(&type), sizeof(int))) {
-                break;
-            }
-            Base* obj = nullptr;
-            switch (type) {
-            case TypeFurniture: {
-                Furniture furniture;
-                file >> furniture;
-                obj = new Furniture(furniture);
-                break;
-            }
-            case TypeEmployee: {
-                Employee employee;
-                file >> employee;
-                obj = new Employee(employee);
-                break;
-            }
-            case TypeCar: {
-                Car car;
-                file >> car;
-                obj = new Car(car);
-                break;
-            }
-            default:
-                break;
-            }
-            if (obj) {
-                AddObject(obj);
-            }
-        }
-        file.close();
-    }
-    else {
+    if (!file.is_open()) {
         throw std::runtime_error("Error: Unable to open the file for loading.");
     }
+
+    Clear();
+
+    // Читаем количество объектов
+    int objectCount;
+    if (!file.read(reinterpret_cast<char*>(&objectCount), sizeof(int))) {
+        throw std::runtime_error("Error: Failed to read object count.");
+    }
+
+    for (int i = 0; i < objectCount; i++) {
+        int type;
+        if (!file.read(reinterpret_cast<char*>(&type), sizeof(int))) {
+            throw std::runtime_error("Error: Failed to read object type.");
+        }
+
+        Base* obj = nullptr;
+
+        switch (type) {
+        case TypeFurniture:
+            obj = new Furniture();
+            if (!file.read(reinterpret_cast<char*>(obj), sizeof(Furniture))) {
+                throw std::runtime_error("Error: Failed to read Furniture data.");
+            }
+            break;
+        case TypeEmployee:
+            obj = new Employee();
+            if (!file.read(reinterpret_cast<char*>(obj), sizeof(Employee))) {
+                throw std::runtime_error("Error: Failed to read Employee data.");
+            }
+            break;
+        case TypeCar:
+            obj = new Car();
+            if (!file.read(reinterpret_cast<char*>(obj), sizeof(Car))) {
+                throw std::runtime_error("Error: Failed to read Car data.");
+            }
+            break;
+        default:
+            break;
+        }
+
+        if (obj) {
+            InsertObject(obj);
+        }
+    }
+
+    file.close();
 }
+
 
 
 int Keeper::GetObjectCount() const {

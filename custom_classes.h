@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include <windows.h>
 
 // Определение максимального количества объектов
 const int MAX_OBJECTS = 100;
@@ -21,6 +22,7 @@ public:
 
     virtual void SetAttributes() = 0;
     virtual void GetAttributes() const = 0;
+    virtual Base* Clone() const = 0;
 
     friend std::ostream& operator<<(std::ostream& os, const Base& obj);
 
@@ -32,8 +34,11 @@ public:
     Furniture(const Furniture& other);
     ~Furniture();
 
+    Furniture* Clone() const override;
     void SetAttributes() override;
     void GetAttributes() const override;
+    friend std::ostream& operator<<(std::ostream& os, const Furniture& furniture);
+    friend std::istream& operator>>(std::istream& is, Furniture& furniture);
 
 private:
     std::string type;
@@ -49,8 +54,11 @@ public:
     Employee(const Employee& other);
     ~Employee();
 
+    Employee* Clone() const override;
     void SetAttributes() override;
     void GetAttributes() const override;
+    friend std::ostream& operator<<(std::ostream& os, const Employee& employee);
+    friend std::istream& operator>>(std::istream& is, Employee& employee);
 
 private:
     std::string name;
@@ -66,8 +74,11 @@ public:
     Car(const Car& other);
     ~Car();
 
+    Car* Clone() const override;
     void SetAttributes() override;
     void GetAttributes() const override;
+    friend std::ostream& operator<<(std::ostream& os, const Car& car);
+    friend std::istream& operator>>(std::istream& is, Car& car);
 
 private:
     std::string make;
@@ -81,6 +92,7 @@ public:
     ~Keeper();
 
     void AddObject(Base* obj);
+    void InsertObject(const Base* obj);
     int GetObjectCount() const;
     Base* GetObject(int index);
     void ListObjects();
