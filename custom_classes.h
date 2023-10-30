@@ -101,8 +101,10 @@ public:
     void LoadFromFile(const std::string& filename);
 
 private:
-    Base* objects[MAX_OBJECTS];
+    Base** objects;  // Динамический массив указателей на объекты Base
     int objectCount;
+    int capacity;  // Емкость массива
 
     void Clear();
+    void Resize(int newCapacity);
 };

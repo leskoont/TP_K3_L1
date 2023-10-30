@@ -174,19 +174,23 @@ std::istream& operator>>(std::istream& is, Car& car) {
 }
 
 // Реализация методов класса Keeper
-Keeper::Keeper() : objectCount(0) {
+Keeper::Keeper() : objectCount(0), capacity(10) {
+    objects = new Base * [capacity];  // Выделяем память для начальной емкости
     std::cout << "Keeper constructor called." << std::endl;
 }
 
 Keeper::~Keeper() {
     Clear();
+    delete[] objects;  // Освобождаем память для массива указателей
     std::cout << "Keeper destructor called." << std::endl;
 }
 
 void Keeper::AddObject(Base* obj) {
-    if (objectCount < MAX_OBJECTS) {
-        objects[objectCount++] = obj;
+    if (objectCount >= capacity) {
+        // Если массив заполнен, увеличиваем его размер
+        Resize(capacity * 2);
     }
+    objects[objectCount++] = obj;
 }
 
 void Keeper::RemoveObject(int index) {
@@ -200,9 +204,11 @@ void Keeper::RemoveObject(int index) {
 }
 
 void Keeper::InsertObject(const Base* obj) {
-    if (objectCount < MAX_OBJECTS) {
-        objects[objectCount++] = obj->Clone(); // Создаем копию объекта и добавляем в массив.
+    if (objectCount >= capacity) {
+        // Если массив заполнен, увеличиваем его размер
+        Resize(capacity * 2);
     }
+    objects[objectCount++] = obj->Clone();
 }
 
 void Keeper::SaveToFile(const std::string& filename) {
@@ -305,8 +311,6 @@ void Keeper::LoadFromFile(const std::string& filename) {
     file.close();
 }
 
-
-
 int Keeper::GetObjectCount() const {
     return objectCount;
 }
@@ -315,7 +319,7 @@ Base* Keeper::GetObject(int index) {
     if (index >= 0 && index < objectCount) {
         return objects[index];
     }
-    return nullptr; // Возвращаем nullptr, если индекс некорректный
+    return nullptr;  // Возвращаем nullptr, если индекс некорректный
 }
 
 void Keeper::Clear() {
@@ -326,6 +330,15 @@ void Keeper::Clear() {
     objectCount = 0;
 }
 
+void Keeper::Resize(int newCapacity) {
+    Base** newObjects = new Base * [newCapacity];
+    for (int i = 0; i < objectCount; i++) {
+        newObjects[i] = objects[i];
+    }
+    delete[] objects;  // Освобождаем старую память
+    objects = newObjects;
+    capacity = newCapacity;
+}
 
 void Keeper::ListObjects() {
     if (objectCount == 0) {
@@ -353,7 +366,7 @@ void Keeper::ListObjects() {
         }
 
         std::cout << "|   " << i << "    |  " << objectType << "  | ";
-        obj->GetAttributes(); // Output object attributes
+        obj->GetAttributes();  // Output object attributes
         std::cout << "---------------------------------------------------------" << std::endl;
     }
 }
